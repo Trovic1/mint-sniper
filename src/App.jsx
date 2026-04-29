@@ -1,7 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
+import { ethers } from 'ethers';
 
+const fastMint = async () => {
+  // We pull these values from your component's state
+  const targetAddress = document.querySelector('input[placeholder="0x..."]').value;
+  const mintPrice = "0.05"; // Or pull from state: const mintPrice = priceState;
+  const quantity = 1n; // Using BigInt for quantity
+  
+
+  // 1. Initialize Provider with your Private RPC
+  const provider = new ethers.JsonRpcProvider(import.meta.env.VITE_PRIVATE_RPC_URL);
+  
+  // 2. Initialize Signer (Burner Wallet)
+  const signer = new ethers.Wallet(import.meta.env.VITE_SNIPER_PRIVATE_KEY, provider);
+  
+  // 3. Define the DN-404 Contract
+  const contract = new ethers.Contract(targetAddress, ["function mint(uint256 quantity) public payable"], signer);
+
+  try {
+    // 4. Aggressive Gas Strategy
+    const feeData = await provider.getFeeData();
+    const tx = await contract.mint(quantity, {
+      value: ethers.parseEther(mintPrice),
+     maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas * 200n) / 100n, // Double the tip
+maxFeePerGas: (feeData.maxFeePerGas * 150n) / 100n // 1.5x the base fee
+    });
+
+    console.log(`Transaction Sent! Hash: ${tx.hash}`);
+  } catch (error) {
+    console.error("Mint failed:", error);
+  }
+};
 // --- Lightweight Local UI Components ---
 const Card = ({ children, className = '' }) => (
   <div className={`bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-lg ${className}`}>
