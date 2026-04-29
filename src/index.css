@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-zinc-950 text-zinc-50;
+}
+body {
+  background-color: #09090b; /* Zinc 950 */
+  color: #f4f4f5; /* Zinc 50 */
+}
